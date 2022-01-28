@@ -1,31 +1,31 @@
 ### 1.下载
 
-```csharp
+```
 https://mirrors.tuna.tsinghua.edu.cn/gnu/gcc/gcc-8.4.0/
 ```
 
 ###  2.解压
 
-```csharp
+```
 tar zxvf gcc-8.4.0.tar.gz
 cd gcc-8.4.0
 ```
 
 ###  3.下载依赖
 
-```csharp
+```
 ./contrib/download_prerequisites
 ```
 
 ###  4.创建编译文件夹
 
-```csharp
+```
 mkdir bulidgcc
 cd buildgcc
 ```
 ###  5.编译安装
 
-```csharp
+```
 ../configure -enable-checking=release -enable-languages=c,c++,fortran -disable-multilib --prefix=/path/gcc
 make
 make install
@@ -33,7 +33,7 @@ make install
 
 ###  6.环境变量
 
-```csharp
+```
 #gcc
 export gcchome=/path/gcc
 export PATH=$gcchome/bin:$PATH
