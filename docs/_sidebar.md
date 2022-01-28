@@ -3,6 +3,7 @@
 	- [RoseTTAfold安装](install/rosettafold.md)
 	- [Amber20安装](install/Amber20.md)
 	- [Amber18安装](install/Amber18.md)
+	- [pychemshell安装](install/pychemshell.md)
 - Amber
 
 - ORCA
