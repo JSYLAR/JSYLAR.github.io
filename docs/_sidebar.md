@@ -4,8 +4,15 @@
 	- [Amber20安装](install/Amber20.md)
 	- [Amber18安装](install/Amber18.md)
 	- [pychemshell安装](install/pychemshell.md)
+- Rosetta
+	- [定义非标准氨基酸](Rosetta/non_standard_res.md)
+	- [单/多底物对接](Rosetta/docking.md)
+	- [限制性对接](Rosetta/Restricted_docking.md)
 - Amber
-
+	- [G16优化并拟合小分子RESP电荷](Amber/RESP.md)
+	- [参数文件路径](Amber/parm_path.md)
+	- [带小分子配体MD](Amber/Lig_contians_MD.md)
+	- [含膜MD](Amber/membrance.md)
 - ORCA
 
 - pychemshell

@@ -1,13 +1,12 @@
 # 一、环境
-1.Ubuntu 20.04.1 LTS
-2.gcc-8.4.0
-3.cmake-3.16.3
-4.系统带python3.8.5
-5.GeForce RTX 3090*8
-6.Driver Version: 455.32.00
-7.CUDA Version: 11.1
-8.其他依赖安装
-
+1.Ubuntu 20.04.1 LTS  
+2.gcc-8.4.0  
+3.cmake-3.16.3  
+4.系统带python3.8.5  
+5.GeForce RTX 3090*8  
+6.Driver Version: 455.32.00  
+7.CUDA Version: 11.1  
+8.其他依赖安装  
 ```
 apt -y update
 apt -y install tcsh make
@@ -15,14 +14,11 @@ apt -y install  gcc gfortran
 apt -y install  flex bison patch 
 apt -y install  bc xorg-dev libbz2-dev wget
 ```
-
-
 AmberTools可以通过conda直接安装
 
 ```
 conda install ambertools -c conda-forge
 ```
-
 # 二、 Amber20安装[手册方法]
 ## 1.下载
 Amber20.tar.bz2
