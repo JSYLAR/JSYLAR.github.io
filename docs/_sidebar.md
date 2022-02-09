@@ -4,6 +4,7 @@
 	- [Amber20安装](install/Amber20.md)
 	- [Amber18安装](install/Amber18.md)
 	- [pychemshell安装](install/pychemshell.md)
+	- [tclchemshell安装](install/tclchemshell.md)
 - Rosetta
 	- [定义非标准氨基酸](Rosetta/non_standard_res.md)
 	- [单/多底物对接](Rosetta/docking.md)
