@@ -17,3 +17,4 @@
 - ORCA
 
 - pychemshell
+	- [qmmm](pychemshell/qmmm.md)
