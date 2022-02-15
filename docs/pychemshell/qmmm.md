@@ -13,16 +13,18 @@ for key, val in prmtop.items():
         charges = prmtop[key]['atom']['data']['charge']
 # Import coords from xyz file and charges from prmtop
 my_mol = Fragment(coords='REA.xyz',charges=charges)
+# Import coords from pdb file and charges from prmtop
 my_pdb = Fragment(coords='T5M_box.pdb',charges=charges)
-haem = list(range(8089,8163))
-lig = list(range(8037,8089))
-cym = list(range(7156,7160))
+# Select QM region based on pdb file
+haem = my_pdb.select(residues=['HEM'], side_chain=True).tolist()
+lig = my_pdb.select(residues=['TAX'], side_chain=True).tolist()
+cym = [7156,7157,7158,7159]
 # Concatenate the lists to form the QM region
 qm_region = haem + cym + lig
 # Save for viewing
 frag_qm_region = my_mol.getSelected(qm_region)
 frag_qm_region.save('qm_region.xyz')
-# Select activate region
+# Select activate region based on pdb file
 active_region = my_pdb.selectByShell(around=qm_region, convex=True, padding=10.0, unit='a.u.', boundary='inclusive', return_masks=False)
 # Save for viewing
 frag_active_region = my_mol.getSelected(active_region)
