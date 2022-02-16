@@ -1,5 +1,4 @@
 ```
-
 import re
 import os.path
 import math
@@ -15,9 +14,10 @@ class ORCA(_QM):
     _attrs = {
                'auxbasis'              :'',
                'basisspec'             : False,
+               # YL 09/03/2021: (suggested by HMS) with ORCA it's always encouraged to use "TightSCF" although "NormalSCF" is the default
+               # YL NB 09/03/2021: but we may change the option's keyword in the future to make it uniform for all interfaces (currently other interfaces use "threshold=1.0e-6")
                'convergence'           :"TightSCF",
 			   'exchange'              :"",
-			   'restart'               : True,
                'cosmo'                 : None,
                'd3'                    : False,
 			   'd4'                    : False,
@@ -43,8 +43,9 @@ class ORCA(_QM):
                'output'                :"_orca.out",
                'output_bqs'            :"_orca.pcgrad",
                'output_eandg'          :"_orca.engrad",
-               'path'                  : '/path/orca_5_0_2_linux_x86-64_shared_openmpi411/orca',
-               'version'               : 5.0,
+               'path'                  : '/public/home/baij/soft/orca_5_0_2_linux_x86-64_shared_openmpi411/orca',
+                # v4.0 changed some basis set input conventions
+               'version'               : 4.0,
              }
 
     _internals = {
@@ -113,15 +114,16 @@ class ORCA(_QM):
         #Basis set
 #         Determine if self.basis contains one or more basis, or if file type with newGTO info
 #         Individual newGTO Basis info written after the atom in the 'coords' section
-        words = self.basis.split()
+        if self.basis:
+         words = self.basis.split()
 #         case 1: one item in self.basis with global basis info 
-        if (len(words) == 1):
+         if (len(words) == 1):
           strbuff += "%basis\n"
           if self.version < 4.0:
             strbuff += "  Basis %s\n" % (self.basis)
           else:
             strbuff += "  Basis \"%s\" \n" % (self.basis)
-		          #Auxiliary basis for RI method
+	          #Auxiliary basis for RI method
           if self.auxbasis:
             if self.version < 4.0:
                 strbuff += "  Aux %s\n" % (self.auxbasis)
@@ -129,7 +131,7 @@ class ORCA(_QM):
                 strbuff += "  Aux \"%s\" \n" % (self.auxbasis)
           strbuff += "end\n"
 #         case 2: more than one item in self.basis but not read in from file
-        if (len(words) > 1) and "\"" not in self.basis.lower():
+         if (len(words) > 1) and "\"" not in self.basis.lower():
           strbuff += "%basis\n"
           strbuff += "  %s\n" % (self.basis)
           if self.auxbasis:
@@ -139,7 +141,7 @@ class ORCA(_QM):
                 strbuff += "  Aux \"%s\" \n" % (self.auxbasis)
           strbuff += "end\n"
 #         case 3: basis set in file
-        if (len(words) > 1) and "\"" in self.basis.lower():
+         if (len(words) > 1) and "\"" in self.basis.lower():
           self.basisspec = True
           lines = self.basis.splitlines()
           num_basis = 0
@@ -213,7 +215,9 @@ class ORCA(_QM):
 #           Patom and Pmodel seem to fail when defining own Basis or ECP so defaulting to hueckel
             if self.guess:
                 strbuff += f'  Guess {self.guess}\n'
-            strbuff += "  AutoStart true\n"
+            strbuff += "  AutoStart false\n"
+            if self.broken:
+                strbuff += f'  BrokenSym {self.broken}\n'
     
         if self.direct:
             strbuff += "  SCFMode Direct\n"
@@ -371,6 +375,12 @@ class ORCA(_QM):
     @property
     def runargs(self):
         '''Override the default runargs'''
+
+        # YL 09/11/2021: because ORCA uses OpenMPI and it's very likely ChemShell is driven by Intel MPI
+        #                we need --oversubscribe to prevent the error
+        #                "There are not enough slots available in the system to satisfy..."
+        #                and --mca btl_base_warn_component_unused 0 to suppress the warning
+        #                "unable to find any relevant network interfaces"
         if self.nprocs > 1:
             return f'{self.input} "--oversubscribe --mca btl_base_warn_component_unused 0"'
         else:
@@ -395,7 +405,14 @@ class ORCA(_QM):
         #       coeff, # unit conversion coefficient
         #     ]
         # referencing to the line where the key is matched
-        self._outkeys = {
+        if self.broken:
+         self._outkeys = {
+                          "energy"   : {"Total Energy":[0,0,1,3,3,1,2,1.0]},
+                          "gradients": {"current gradient":[2,(1+3*(self.frag.natoms+self.num_explicit)),1,0,0,1,1,1.0]},
+                          "bq_grads" : {"":[1,(self.frag.bqs.nbqs-self.num_explicit),1,0,2,1,1,1.0]},
+                        }
+        else:
+         self._outkeys = {
                           "energy"   : {"Total Energy":[0,0,1,3,3,1,1,1.0]},
                           "gradients": {"current gradient":[2,(1+3*(self.frag.natoms+self.num_explicit)),1,0,0,1,1,1.0]},
                           "bq_grads" : {"":[1,(self.frag.bqs.nbqs-self.num_explicit),1,0,2,1,1,1.0]},
@@ -462,4 +479,7 @@ class ORCA(_QM):
 
                else:
                  self.frag.bqs.gradients = fileutils.getArrayFromFile(self.output_bqs, 'out', self.frag.bqs.gradients.shape, regex=self._outkeys['bq_grads'])
+
+
+
 ```

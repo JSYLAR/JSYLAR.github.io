@@ -17,5 +17,6 @@
 - ORCA
 
 - pychemshell
-	- [qmmm](pychemshell/qmmm.md)
+	- [opt](pychemshell/opt.md)
+	- [dimer](pychemshell/dimer.md)
 	- [interface_orca](pychemshell/orca_interface.md)
