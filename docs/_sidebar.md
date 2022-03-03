@@ -20,3 +20,5 @@
 	- [opt](pychemshell/opt.md)
 	- [dimer](pychemshell/dimer.md)
 	- [interface_orca](pychemshell/orca_interface.md)
+- MY_LIB
+	- [tools](MY_LIB/tools.md)
