@@ -14,6 +14,7 @@
 	- [参数文件路径](Amber/parm_path.md)
 	- [带小分子配体MD](Amber/Lig_contians_MD.md)
 	- [含膜MD](Amber/membrance.md)
+	- [cpptraj](Amber/cpptraj.md)
 - ORCA
 
 - pychemshell
