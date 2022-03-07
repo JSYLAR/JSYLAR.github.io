@@ -1,110 +1,130 @@
 ```  
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import math,os
+from Bio.PDB import *
 
-def get_coor_box(lines):
-	X=(float(lines.split()[5]))
-	Y=(float(lines.split()[6]))
-	Z=(float(lines.split()[7]))
-	return X,Y,Z
-def get_coor_pdb(lines):
-	X=(float(lines.split()[6]))
-	Y=(float(lines.split()[7]))
-	Z=(float(lines.split()[8]))
-	return X,Y,Z
 
 class select_res_by_dis:
-	def __init__(self,targetfile,lig,select_dis,z,ligtype='',filetype='pdb',atomname=''):
+	def __init__(self,targetfile,lig,select_dis,z,atomname='',except_res=[],save=False):
 		self.targetfile=targetfile
 		self.lig=lig
 		self.select_dis=select_dis
 		self.z=z
-		self.ligtype=ligtype
-		self.filetype=filetype
 		self.atomname=atomname
+		self.except_res=except_res
+		self.save=save
+	def takeSecond_(elem):
+		return elem.split(',')[1]
 	def dis2lig(self):
-		import math
-		res=[]
-		pdbline=[]
-		atom=[]
-		select_index=[]
-		with open(self.targetfile) as pdb:
-			line = pdb.readlines()
-			for lines in line:
-				if str(self.ligtype) in lines.split()[0] and (lines.split()[3] in self.lig):
-					X,Y,Z = get_coor_box(lines) if self.filetype=='box' else get_coor_pdb(lines)
-					for lines in line:
-						if 'ATOM' in lines.split()[0]:
-							x,y,z= get_coor_box(lines) if self.filetype=='box' else get_coor_pdb(lines)
-							dis=math.sqrt(math.pow(abs(x-X), 2)+math.pow(abs(y-Y), 2)+math.pow(abs(z-Z), 2))
-							if dis <= self.select_dis:
-								if self.ligtype =='HETATM':
-									res.append(''.join(lines.split()[3])+':'+''.join(lines.split()[5]))
-									select_index.append(''.join(lines.split()[5]))
-								else:
-									res.append(''.join(lines.split()[3])+':'+''.join(lines.split()[4]))
-									select_index.append(''.join(lines.split()[4]))
-			select=set(res)
-			set(select_index)
-			for lines in line:
-				try:
-					index=(''.join(lines.split()[4]))
-					if index in select_index:
-						coor=''.join(lines)[0:62] 
-						end=''.join(lines)[66:]
-						lines=(f'{coor}1.00{end}')
-						pdbline.append(lines)
-						atom.append(str(int(''.join(lines.split()[1]))-self.z)+' ')
-				except:
-					continue
-		return select,pdbline,atom
+		n=0
+		res_list=[]
+		atom_list=[]
+		select_list=[]
+		ligatom=[]
+		res_except=self.except_res
+		res_except.append(self.lig)
+		parser = PDBParser(PERMISSIVE=True)
+		structure_name = (str(self.targetfile).strip('pdb'))[0:4]
+		fileName = self.targetfile
+		pdb = parser.get_structure(structure_name,fileName)
+		atomList = Selection.unfold_entities(pdb, 'A')
+		for residue in pdb.get_residues():
+			if n == 0:
+				if residue.get_resname() == self.lig:
+					n+=1
+					ligatom_list=Selection.unfold_entities(residue, "A")
+					for i in ligatom_list:
+						ligatom.append(i.get_name())
+					for atom in residue:
+						if atom.get_name() in ligatom:
+							coor=atom.get_coord()
+							ns=NeighborSearch(atomList).search(coor,self.select_dis,level='R')
+							select_list+=ns
+							for i in ns:
+								res_name=i.get_resname()
+								res_id=i.get_id()[1]
+								if res_name not in res_except:
+									res_list.append(f'{res_name},{res_id}')
+		re_list=list(set(res_list))
+		io = PDBIO()
+		io.set_structure(pdb)
+		class Select_pdb(Select):
+		    def accept_residue(self, residue):
+		        if residue in select_list:
+		            return 1
+		        else:
+		            return 0
+		if self.save==True:
+			io.save(f"select_{structure_name}.pdb",Select_pdb())
+		for resdue in select_list:
+			atoms = resdue.get_atoms()
+			for i in atoms:
+				atom_list.append(i.get_serial_number()-self.z)
+		at_list=list(set(atom_list))
+		at_list.sort()
+		re_list.sort(key=select_res_by_dis.takeSecond_)
+					
+		return re_list,at_list
 	def dis2atom(self):
-		import math
-		res=[]
-		pdbline=[]
-		atom=[]
-		select_index=[]
-		with open(self.targetfile) as pdb:
-			line = pdb.readlines()
-			for lines in line:
-				if str(self.ligtype) in lines.split()[0] and (lines.split()[3] in self.lig) and (lines.split()[2] in self.atomname):
-					X,Y,Z = get_coor_box(lines) if self.filetype=='box' else get_coor_pdb(lines)
-					for lines in line:
-						if 'ATOM' in lines.split()[0]:
-							x,y,z= get_coor_box(lines) if self.filetype=='box' else get_coor_pdb(lines)
-							dis=math.sqrt(math.pow(abs(x-X), 2)+math.pow(abs(y-Y), 2)+math.pow(abs(z-Z), 2))
-							if dis <= self.select_dis:
-								if self.ligtype =='HETATM':
-									res.append(''.join(lines.split()[3])+':'+''.join(lines.split()[5]))
-									select_index.append(''.join(lines.split()[5]))
-								else:
-									res.append(''.join(lines.split()[3])+':'+''.join(lines.split()[4]))
-									select_index.append(''.join(lines.split()[4]))
-			select=set(res)
-			set(select_index)
-			for lines in line:
-				try:
-					index=(''.join(lines.split()[4]))
-					if index in select_index:
-						coor=''.join(lines)[0:62] 
-						end=''.join(lines)[66:]
-						lines=(f'{coor}1.00{end}')
-						pdbline.append(lines)
-						atom.append(str(int(''.join(lines.split()[1]))-self.z)+' ')
-				except:
-					continue
-		return select,pdbline,atom
+		n=0
+		res_list=[]
+		atom_list=[]
+		select_list=[]
+		res_except=self.except_res
+		res_except.append(self.lig)
+		parser = PDBParser(PERMISSIVE=True)
+		structure_name = (str(self.targetfile).strip('pdb'))[0:4]
+		fileName = self.targetfile
+		pdb = parser.get_structure(structure_name,fileName)
+		atomList = Selection.unfold_entities(pdb, 'A')
+		for residue in pdb.get_residues():
+			if n == 0:
+				if residue.get_resname() == self.lig:
+					n+=1
+					for atom in residue:
+						if atom.get_name() in self.atomname:
+							coor=atom.get_coord()
+							ns=NeighborSearch(atomList).search(coor,self.select_dis,level='R')
+							select_list+=ns
+							for i in ns:
+								res_name=i.get_resname()
+								res_id=i.get_id()[1]
+								if res_name not in res_except:
+									res_list.append(f'{res_name},{res_id}')
+		re_list=list(set(res_list))
+		io = PDBIO()
+		io.set_structure(pdb)
+		class Select_pdb(Select):
+		    def accept_residue(self, residue):
+		        if residue in select_list:
+		            return 1
+		        else:
+		            return 0
+		if self.save==True:
+			io.save(f"select_{structure_name}.pdb",Select_pdb())
+		for resdue in select_list:
+			atoms = resdue.get_atoms()
+			for i in atoms:
+				atom_list.append(i.get_serial_number()-self.z)
+		at_list=list(set(atom_list))
+		at_list.sort()
+		re_list.sort(key=select_res_by_dis.takeSecond_)
+		
+		return re_list,at_list
 	
-def takeSecond(elem):
-	return elem[1]
-def TotleSelect(score):
-	scorefaile=[]
-	with open(score,'r') as scoreread:
-		line = scoreread.readlines()[2:]
-		for lines in line:
-			scorefaile.append(lines.split())
-		scorefaile.sort(key=takeSecond)
-		low=str((' '.join(scorefaile[-1])).split()[-1])
-		print(low)
-	scorefaile=''
+# def takeFirst(elem):
+# 	return elem[0]
+# def takeSecond(elem):
+# 	return elem[1]
+# def TotleSelect(score):
+# 	scorefaile=[]
+# 	with open(score,'r') as scoreread:
+# 		line = scoreread.readlines()[2:]
+# 		for lines in line:
+# 			scorefaile.append(lines.split())
+# 		scorefaile.sort(key=takeSecond)
+# 		low=str((' '.join(scorefaile[-1])).split()[-1])
+# 		print(low)
+# 	scorefaile=''
 ```  

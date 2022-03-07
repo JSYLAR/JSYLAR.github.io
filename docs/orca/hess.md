@@ -1,4 +1,4 @@
-
+```
 
 Scaling factor for frequencies =  1.000000000 (already applied!)
 
@@ -43,5 +43,7 @@ Scaling factor for frequencies =  1.000000000 (already applied!)
   38:         5.12 cm**-1
   39:         5.12 cm**-1
   40:         5.12 cm**-1
-  
+```
+```
   orca_pltvib TS.hess 6
+```

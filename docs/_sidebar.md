@@ -16,7 +16,9 @@
 	- [含膜MD](Amber/membrance.md)
 	- [cpptraj](Amber/cpptraj.md)
 - ORCA
-
+	- [qmmm](orca/qmmm.md)
+	- [hess](orca/hess.md)
+	- [scan_lbfgs](orca/scan.md)
 - pychemshell
 	- [opt](pychemshell/opt.md)
 	- [dimer](pychemshell/dimer.md)

@@ -1,23 +1,4 @@
 ```
-#  Copyright (C) 2018 The authors of Py-ChemShell
-#
-#  This file is part of Py-ChemShell.
-#
-#  Py-ChemShell is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU Lesser General Public License as
-#  published by the Free Software Foundation, either version 3 of the
-#  License, or (at your option) any later version.
-#
-#  Py-ChemShell is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU Lesser General Public License for more details.
-#
-#  You should have received a copy of the GNU Lesser General Public
-#  License along with Py-ChemShell.  If not, see
-#  <http://www.gnu.org/licenses/>.
-
-# david.gunn@stfc.ac.uk
 
 import re
 import os.path
@@ -39,6 +20,7 @@ class ORCA(_QM):
                'convergence'           :"TightSCF",
                'slowconv'              : False,
                'exchange'              : "",
+               'CHF'                   : "",
                'soscf'                 : False,
                'cosmo'                 : None,
                'd3'                    : False,
@@ -50,7 +32,7 @@ class ORCA(_QM):
                'excited'               : False,
                'explicit'              : False,
                'exp_list'              : [],
-               'guess'                 : "PModel",
+               'guess'                 : "PAtom",
                'image'                 : None,
                'input'                 :"_orca.inp",
                'jobname'               :"_orca",
@@ -112,9 +94,10 @@ class ORCA(_QM):
         if self.slowconv:
              strbuff += "! slowconv NoTrah\n"
         if self.soscf:
-             strbuff += "! soscf NoTrah slowconv defgrid3\n"
+             strbuff += "! soscf NoTrah slowconv\n"
         if self.cosmo:
-            strbuff += "! COSMO(%s)\n" % (self.cosmo)
+             strbuff += "! COSMO(%s)\n" % (self.cosmo)
+        strbuff += "! defgrid3\n"
 
         #Parallel execution
         if self.nprocs > 1:
@@ -129,6 +112,8 @@ class ORCA(_QM):
 
         #Method
         strbuff += "%method\n"
+        if self.CHF:
+            strbuff += "  ACM %s\n" % (self.CHF)
         if self.enerflag:
             if self._gradients:
                 strbuff += "  RunTyp Gradient\n"
@@ -233,13 +218,15 @@ class ORCA(_QM):
         #SCF control
         strbuff += "%scf\n"
         strbuff += "  DirectResetFreq 1\n"
-        strbuff += "  DIIS Start 0.1 MaxIt 5 MaxEq 20 BFac 1.2 MaxC 15.0 end \n"
-        strbuff += "  SOSCFStart 0.0002 \n"
+        strbuff += "  DIIS Start 0.1 MaxIt 5 MaxEq 25 BFac 1.2 MaxC 15.0 end \n"
+        strbuff += "  SOSCFStart 0.0001 \n"
+        strbuff += "  DampErr 0.001 \n"
         strbuff += "  HFTyp %s\n" % (self.scftype)
         if self.restart:
             fileutils.rename(self.old_moinp,self.moinp)
             strbuff += "  Guess MORead\n"
-            strbuff += "  MOInp \"%s\" \n" % (self.moinp)
+            #strbuff += "  MOInp \"%s\" \n" % (self.moinp)
+            strbuff += "  MOInp \"save.gbw\" \n"
         else:
 #           Patom and Pmodel seem to fail when defining own Basis or ECP so defaulting to hueckel
             if self.guess:
@@ -434,21 +421,8 @@ class ORCA(_QM):
         #       coeff, # unit conversion coefficient
         #     ]
         # referencing to the line where the key is matched
-        if self.broken and self.restart:
-         self._outkeys = {
-                          "energy"   : {"FINAL SINGLE POINT ENERGY":[0,0,1,3,3,1,3,1.0]},
-                          "gradients": {"current gradient":[2,(1+3*(self.frag.natoms+self.num_explicit)),1,0,0,1,1,1.0]},
-                          "bq_grads" : {"":[1,(self.frag.bqs.nbqs-self.num_explicit),1,0,2,1,1,1.0]},
-                        }
-        if self.functional=='xtb2':
-         self._outkeys = {
-                          "energy"   : {"TOTAL ENERGY":[0,0,1,3,3,1,1,1.0]},
-                          "gradients": {"current gradient":[2,(1+3*(self.frag.natoms+self.num_explicit)),1,0,0,1,1,1.0]},
-                          "bq_grads" : {"":[1,(self.frag.bqs.nbqs-self.num_explicit),1,0,2,1,1,1.0]},
-                        }
-        else:
-         self._outkeys = {
-                          "energy"   : {"FINAL SINGLE POINT ENERGY":[0,0,1,3,3,1,0,1.0]},
+        self._outkeys = {
+                          "energy"   : {"FINAL SINGLE POINT ENERGY":[0,0,1,4,4,1,1,1.0]},
                           "gradients": {"current gradient":[2,(1+3*(self.frag.natoms+self.num_explicit)),1,0,0,1,1,1.0]},
                           "bq_grads" : {"":[1,(self.frag.bqs.nbqs-self.num_explicit),1,0,2,1,1,1.0]},
                         }
@@ -514,5 +488,8 @@ class ORCA(_QM):
 
                else:
                  self.frag.bqs.gradients = fileutils.getArrayFromFile(self.output_bqs, 'out', self.frag.bqs.gradients.shape, regex=self._outkeys['bq_grads'])
+
+
+
 ```
 
