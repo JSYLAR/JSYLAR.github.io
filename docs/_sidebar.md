@@ -13,6 +13,7 @@
 	- [G16优化并拟合小分子RESP电荷](Amber/RESP.md)
 	- [参数文件路径](Amber/parm_path.md)
 	- [带小分子配体MD](Amber/Lig_contians_MD.md)
+	- [约束下降MD](Amber/opt_md.md)
 	- [含膜MD](Amber/membrance.md)
 	- [cpptraj](Amber/cpptraj.md)
 - ORCA

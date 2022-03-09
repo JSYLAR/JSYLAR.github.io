@@ -1,4 +1,22 @@
-```
+#  Copyright (C) 2018 The authors of Py-ChemShell
+#
+#  This file is part of Py-ChemShell.
+#
+#  Py-ChemShell is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as
+#  published by the Free Software Foundation, either version 3 of the
+#  License, or (at your option) any later version.
+#
+#  Py-ChemShell is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with Py-ChemShell.  If not, see
+#  <http://www.gnu.org/licenses/>.
+
+# david.gunn@stfc.ac.uk
 
 import re
 import os.path
@@ -42,12 +60,13 @@ class ORCA(_QM):
                'newgto'                : None,
                'nprocs'                : 1,
                'num_explicit'          : 0,
+               'CPU'                   : False ,
                'old_moinp'             :"_orca.gbw",
                'optstr'                :'',
                'output'                :"_orca.out",
                'output_bqs'            :"_orca.pcgrad",
                'output_eandg'          :"_orca.engrad",
-               'path'                  : '/public1/home/scfa1417/soft/orca_5_0_3_linux_x86-64_shared_openmpi411/orca',
+               'path'                  : '/public/home/baij/soft/orca_5_0_3_linux_x86-64_shared_openmpi411/orca',
                 # v4.0 changed some basis set input conventions
                'version'               : 4.0,
              }
@@ -97,7 +116,7 @@ class ORCA(_QM):
              strbuff += "! soscf NoTrah slowconv\n"
         if self.cosmo:
              strbuff += "! COSMO(%s)\n" % (self.cosmo)
-        strbuff += "! defgrid3\n"
+        strbuff += "! defgrid2\n"
 
         #Parallel execution
         if self.nprocs > 1:
@@ -218,9 +237,9 @@ class ORCA(_QM):
         #SCF control
         strbuff += "%scf\n"
         strbuff += "  DirectResetFreq 1\n"
-        strbuff += "  DIIS Start 0.1 MaxIt 5 MaxEq 25 BFac 1.2 MaxC 15.0 end \n"
+        strbuff += "  DIIS Start 0.1 MaxIt 5 MaxEq 20 BFac 1.2 MaxC 15.0 end \n"
         strbuff += "  SOSCFStart 0.0001 \n"
-        strbuff += "  DampErr 0.001 \n"
+        #strbuff += "  DampErr 0.001 \n"
         strbuff += "  HFTyp %s\n" % (self.scftype)
         if self.restart:
             fileutils.rename(self.old_moinp,self.moinp)
@@ -398,7 +417,10 @@ class ORCA(_QM):
         #                and --mca btl_base_warn_component_unused 0 to suppress the warning
         #                "unable to find any relevant network interfaces"
         if self.nprocs > 1:
-            return f'{self.input} "--oversubscribe --mca btl_base_warn_component_unused 0"'
+            if self.CPU :
+                return f'{self.input} "--oversubscribe -rf CPU --mca btl_base_warn_component_unused 0"'
+            else:
+                return f'{self.input} "--oversubscribe --mca btl_base_warn_component_unused 0"'
         else:
             return self.input
 
@@ -490,6 +512,4 @@ class ORCA(_QM):
                  self.frag.bqs.gradients = fileutils.getArrayFromFile(self.output_bqs, 'out', self.frag.bqs.gradients.shape, regex=self._outkeys['bq_grads'])
 
 
-
-```
 
