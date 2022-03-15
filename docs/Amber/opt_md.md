@@ -1,15 +1,12 @@
 ```
 # -*- coding: utf-8 -*-
 """
-Created on Sun Jan 17 16:10:22 2021
-
-@author: baijie
 """
 import sys,getopt,os,datetime,subprocess
 def usage():										      ### help documents
 	useinfo = '''
 	-h:\thelp documents.\n
-	-i:\tinput pdb file name like <1AB2>.\n
+	-i:\tinput pdb file name like <1AB2.PDB>.\n
 	-j:\tthreads like <3>.\n
 	-m:\tchose sander or pmemd \n
 	-u:\tuse cuda like <cuda>
@@ -47,7 +44,7 @@ for op,value in opts:
 		n = value
 	elif op == '-h':
 		usage()
-name = targetfile
+name = str(targetfile).split('.pdb')[0]
 print(name)
 with open('in/'+name+'_box.pdb','r') as seqread:
 	line = seqread.readlines()
@@ -70,8 +67,8 @@ order=str(seqR)
 corder=str(int(seqC)-1)
 open('in/min1.in','w').write(f" &cntrl  \n"\
 							 f"  imin=1, \n"\
-							 f"  maxcyc=10000, \n"\
-							 f"  ncyc=10000, \n"\
+							 f"  maxcyc=5000, \n"\
+							 f"  ncyc=2500, \n"\
 							 f"  ntb=1, \n"\
 							 f"  ntr=1,\n"\
 							 f"  restraintmask=':1-{order}@CA,N,C', \n"\
@@ -80,8 +77,8 @@ open('in/min1.in','w').write(f" &cntrl  \n"\
 							 f" / \n END")
 open('in/min2.in','w').write(f" &cntrl  \n"\
 							 f"  imin=1, \n"\
-							 f"  maxcyc=10000, \n"\
-							 f"  ncyc=10000, \n"\
+							 f"  maxcyc=5000, \n"\
+							 f"  ncyc=2500, \n"\
 							 f"  ntb=1, \n"\
 							 f"  cut=12.0 \n"\
 							 f" / \n END")
@@ -89,8 +86,8 @@ open('in/heat.in','w').write(f'explicit solvent initial heating: 50ps\n'\
 							 f' &cntrl\n'\
 							 f'  imin=0,\n'\
 							 f'  irest=0,\n'\
-							 f'  nstlim=250000,\n'\
-							 f'  dt=0.0005,\n'\
+							 f'  nstlim=25000,\n'\
+							 f'  dt=0.0002,\n'\
 							 f'  ntc=2,\n'\
 							 f'  ntf=2,\n'\
 							 f'  ntx=1,\n'\
@@ -111,7 +108,7 @@ open('in/heat.in','w').write(f'explicit solvent initial heating: 50ps\n'\
 							 f'  /\n'\
 							 f"  &wt TYPE='TEMP0',\n"\
 							 f'  ISTEP1=0,\n'\
-							 f'  ISTEP2=250000,\n'\
+							 f'  ISTEP2=25000,\n'\
 							 f'  VALUE1=0.0,\n'\
 							 f'  VALUE2=300.0,\n'\
 							 f'  /\n'\
@@ -123,8 +120,8 @@ open('in/press.in','w').write(f'explicit solvent density: 50ps\n'\
 								f'  imin=0,\n'\
 								f'  irest=1,\n'\
 								f'  ntx=5,\n'\
-								f'  nstlim=250000,\n'\
-								f'  dt=0.0001,\n'\
+								f'  nstlim=25000,\n'\
+								f'  dt=0.0002,\n'\
 								f'  ntc=2,\n'\
 								f'  ntf=2,\n'\
 								f'  cut=8.0,\n'\

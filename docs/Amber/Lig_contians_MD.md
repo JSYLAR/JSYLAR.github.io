@@ -94,7 +94,7 @@ pdb4amber -i X_H.pdb -o X.pdb
   
 【12】创建新文件`com.tleap`写入以下内容，保存  
 ```  
-source leaprc.protein.ff14SB `此处可以使用ff19SB`   
+source leaprc.protein.ff14SB 
 source leaprc.water.tip3p  
 source leaprc.gaff  
 loadamberparams Y.frcmod  
