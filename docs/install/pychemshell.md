@@ -50,6 +50,10 @@ export LIBRARY_PATH=/path/lapack-3.10.0/:$LIBRARY_PATH
 ```
 tar xvf chemsh-py-21.0.0.tar.gz
 cd chemsh-py-21.0.0
-./setup --fc gfortran --cc gcc
+./setup --fc gfortran --cc gcc --pythonlib=/path/anaconda3/lib/libpython3.9.so --pythoninclude=/path/anaconda3/include/python3.9
+```
+并行版
+```
+./setup  --mpi --fc mpifort --cc mpicc --pythonlib=/path/anaconda3/lib/libpython3.9.so --mpi_include_path=/path/openmpi-4.1.1/include --mpi_lib_path=/path/openmpi-4.1.1/lib --pythoninclude=/path/anaconda3/include/python3.9
 ```
 其他版本依照`INSTALL`文件内容安装，不再赘述
