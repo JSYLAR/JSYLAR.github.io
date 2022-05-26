@@ -1,5 +1,0 @@
-构建hmm
-```
-hmmbuild all.hmm all.aln
-```
-conda install -c biocore psipred
