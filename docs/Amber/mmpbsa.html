@@ -1,0 +1,89 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Lig_contians MD</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="../assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="../assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+					<header id="header">
+					</header>
+				<!-- Nav -->
+					<nav id="nav">
+						<ul class="links">
+							<li><a href="../Amber.html">Amber</a></li>
+							<li><a href="../Rosetta.html">Rosetta</a></li>
+							<li><a href="../Orca.html">Orca</a></li>
+							<li><a href="../ChemShell.html">ChemShell</a></li>
+							<li><a href="../Installation Notes.html">Installation Notes</a></li>
+						</ul>
+					</nav>
+				<!-- Main -->
+					<div id="main">
+						<!-- Text stuff -->
+						<header>
+<p>在进行MD模拟的过程中，复合体水盒的prmtop文件已经生成，可以使用`ante-MMPBSA.py`脚本将复合体、蛋白受体、小分子配体的参数文件从水盒prmtop文件中分别提取出来。</p>
+<p>【1】prmtop文件拆分</p>
+<p></p>
+<p>复合体prmtop文件，只需要去除水分子、金属离子</p>
+<pre><code>ante-MMPBSA.py -p X_box.prmtop -c com.prmtop -s ":WAT,Na+,MG" --radii=mbondi2
+</code></pre>
+<p>蛋白质受体prmtop文件，去除水分子以及小分子配体、金属离子</p>
+<p></p>
+<pre><code>ante-MMPBSA.py -p X_box.prmtop -c rec.prmtop -s ":WAT,Na+,MG,Y" --radii=mbondi2
+</code></pre>
+<p>小分子配体prmtop文件，去除水分子，蛋白质链、金属离子以及辅酶</p>
+<p></p>
+<pre><code>ante-MMPBSA.py -p X_box.prmtop -c lig.prmtop -s ":WAT,Na+,MG,MG,GPP,1-1068" --radii=mbondi2
+</code></pre>
+<P>【2】mmgbsa.in</p>
+<pre><code>Input file for running GB
+&general
+   startframe=1,
+   endframe=100,
+   verbose=1,
+   interval=1,
+/
+&gb
+  igb=2, saltcon=0.100
+/
+</code></pre>
+<P>【3】mmpbsa.in</p>
+<pre><code>Input file for running GB
+&general
+   startframe=1,
+   endframe=100,
+   verbose=1,
+   interval=1,
+/
+&gb
+  igb=2, saltcon=0.100
+/
+&pb
+istrng=0.15, fillratio=4.0
+/
+</code></pre>
+<p>执行命令</p>
+<pre><code>mpirun -np 20 MMPBSA.py.MPI -O -i mmpbsa.in -o FINAL_RESULTS_MMPBSA.dat -cp com.prmtop -rp rea.prmtop -lp lig.prmtop -y md.nc
+</code></pre>
+					</div>
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+	</body>
+</html>
