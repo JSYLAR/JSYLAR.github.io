@@ -1,0 +1,2 @@
+“...Unable to mmap 8 bytes from file <filename not specified>: Cannot allocate memory (12)”
+sudo sysctl -w vm.max_map_count=99999999
