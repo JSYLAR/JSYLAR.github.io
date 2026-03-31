@@ -1,2 +1,13 @@
 “...Unable to mmap 8 bytes from file <filename not specified>: Cannot allocate memory (12)”
 sudo sysctl -w vm.max_map_count=99999999
+chimerax中移除所有键连
+runscript /home/baijie/local/chimerax/dbond.py
+将保存在一个pdb中的多个结构视为轨迹进行加载
+open /run/user/1000/gvfs/sftp:host=172.16.2.103/home/baijie/Panda/test/site/sample/trajectory_0000.pdb coordsets true
+移除虚线伪键连
+setattr g display false
+
+awk 'NR==1 { print } NR>1 { val = -$2 - 10; if (val < -180) val += 360; printf "%8s %12.4f\n", $1, val }' T1.dat > T1_.dat
+
+冻结裁剪
+clip model #!20 false

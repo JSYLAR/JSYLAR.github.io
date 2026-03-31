@@ -1,0 +1,149 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>限制性/共价对接</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="../assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="../assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+					<header id="header">
+					</header>
+				<!-- Nav -->
+					<nav id="nav">
+						<ul class="links">
+							<li><a href="../Amber.html">Amber</a></li>
+							<li><a href="../Rosetta.html">Rosetta</a></li>
+							<li><a href="../Orca.html">Orca</a></li>
+							<li><a href="../ChemShell.html">ChemShell</a></li>
+							<li><a href="../Installation Notes.html">Installation Notes</a></li>
+						</ul>
+					</nav>
+				<!-- Main -->
+					<div id="main">
+						<!-- Text stuff -->
+						<header>
+<h1>限制性/共价对接</h1>
+<p><code>LIG.cst</code>描述对接中共价连接或受限的两个原子间的各项参数</p>
+<pre><code>#block 1 for covalent bond for CYM and CPD1
+
+CST::BEGIN  
+  TEMPLATE::   ATOM_MAP: 1 atom_name: FE1 N2 N1
+  TEMPLATE::   ATOM_MAP: 1 residue3: HEM
+
+  TEMPLATE::   ATOM_MAP: 2 atom_name: SG CB CA
+  TEMPLATE::   ATOM_MAP: 2 residue3: CYM 
+ 
+  CONSTRAINT:: distanceAB:    2.00   0.20 180.00  1
+  CONSTRAINT::    angle_A:   98.00   3.00 100.00  360.00
+  CONSTRAINT::    angle_B:  120.00  10.00  50.00  360.00
+  CONSTRAINT::  torsion_A:  -98.00   5.00  50.00  360.00
+  CONSTRAINT::  torsion_B:  103.00   5.00  25.00  360.00
+  CONSTRAINT:: torsion_AB: -176.60   5.00   5.00  360.00
+CST::END</code></pre>
+<p>OPTIONS</p>
+<pre><code>-in:file:s X.pdb
+-in:file:extra_res_fa  Y.params
+-in:file:extra_res_fa  Z.params
+-run::preserve_header
+-packing
+	-ex1
+	-ex2aro
+	-ex2 
+	-no_optH false
+	-flip_HNQ true
+	-ignore_ligand_chi true
+-enzdes
+	-cstfile LIG.cst
+-parser
+	-protocol ligand_dock_2018.xml
+
+-out
+-level 100
+	-nstruct 10000
+	-path:all outputs
+	#-overwrite</code></pre>
+<p>在PDB首行通过REMARK声明两者连接</p>
+<pre><code>REMARK   0 BONE TEMPLATE X HEM  1 MATCH MOTIF A CYM   443  1        </code></pre>
+<p>XML</p>
+<pre><code>&lt;ROSETTASCRIPTS&gt;
+	&lt;SCOREFXNS&gt;
+		&lt;ScoreFunction name=&quot;ligand_soft_rep&quot; weights=&quot;ligand_soft_rep&quot;&gt;
+		&lt;/ScoreFunction&gt;
+		&lt;ScoreFunction name=&quot;hard_rep&quot; weights=&quot;ligand&quot;&gt;
+		&lt;/ScoreFunction&gt;
+	&lt;/SCOREFXNS&gt;
+
+	&lt;LIGAND_AREAS&gt;
+		&lt;LigandArea name=&quot;docking_sidechain_X&quot; chain=&quot;X&quot; cutoff=&quot;6.0&quot; add_nbr_radius=&quot;true&quot; all_atom_mode=&quot;true&quot; minimize_ligand=&quot;10&quot;/&gt;
+		&lt;LigandArea name=&quot;final_sidechain_X&quot; chain=&quot;X&quot; cutoff=&quot;6.0&quot; add_nbr_radius=&quot;true&quot; all_atom_mode=&quot;true&quot;/&gt;
+		&lt;LigandArea name=&quot;final_backbone_X&quot; chain=&quot;X&quot; cutoff=&quot;7.0&quot; add_nbr_radius=&quot;false&quot; all_atom_mode=&quot;true&quot; Calpha_restraints=&quot;0.3&quot;/&gt;
+		
+		&lt;LigandArea name=&quot;docking_sidechain_F&quot; chain=&quot;F&quot; cutoff=&quot;6.0&quot; add_nbr_radius=&quot;true&quot; all_atom_mode=&quot;true&quot; minimize_ligand=&quot;10&quot;/&gt;
+		&lt;LigandArea name=&quot;final_sidechain_F&quot; chain=&quot;F&quot; cutoff=&quot;6.0&quot; add_nbr_radius=&quot;true&quot; all_atom_mode=&quot;true&quot;/&gt;
+		&lt;LigandArea name=&quot;final_backbone_F&quot; chain=&quot;F&quot; cutoff=&quot;7.0&quot; add_nbr_radius=&quot;false&quot; all_atom_mode=&quot;true&quot; Calpha_restraints=&quot;0.3&quot;/&gt;
+	&lt;/LIGAND_AREAS&gt;
+	&lt;INTERFACE_BUILDERS&gt;
+		&lt;InterfaceBuilder name=&quot;side_chain_for_docking&quot; ligand_areas=&quot;docking_sidechain_X,docking_sidechain_F&quot;/&gt;
+		&lt;InterfaceBuilder name=&quot;side_chain_for_final&quot; ligand_areas=&quot;final_sidechain_X,final_sidechain_F&quot;/&gt;
+		&lt;InterfaceBuilder name=&quot;backbone&quot; ligand_areas=&quot;final_backbone_X,final_backbone_F&quot; extension_window=&quot;3&quot;/&gt;
+	&lt;/INTERFACE_BUILDERS&gt;
+	&lt;MOVEMAP_BUILDERS&gt;
+		&lt;MoveMapBuilder name=&quot;docking&quot; sc_interface=&quot;side_chain_for_docking&quot; minimize_water=&quot;true&quot;/&gt;
+		&lt;MoveMapBuilder name=&quot;final&quot; sc_interface=&quot;side_chain_for_final&quot; bb_interface=&quot;backbone&quot; minimize_water=&quot;true&quot;/&gt;
+	&lt;/MOVEMAP_BUILDERS&gt;
+	&lt;SCORINGGRIDS ligand_chain=&quot;X&quot; width=&quot;20&quot;&gt;
+		&lt;ClassicGrid grid_name=&quot;classic&quot; weight=&quot;1.0&quot;/&gt;
+	&lt;/SCORINGGRIDS&gt;
+	&lt;MOVERS&gt;
+	single movers_X
+		&lt;AddOrRemoveMatchCsts name=&quot;cstadd&quot; cst_instruction=&quot;add_new&quot;/&gt; add catalytic constraints
+		&lt;Transform name=&quot;transform_F&quot; chain=&quot;F&quot; box_size=&quot;7.0&quot; move_distance=&quot;0.2&quot; angle=&quot;20&quot; cycles=&quot;700&quot; repeats=&quot;1&quot; temperature=&quot;5&quot;/&gt;
+		&lt;Transform name=&quot;transform_X&quot; chain=&quot;X&quot; box_size=&quot;8.0&quot; move_distance=&quot;0.2&quot; angle=&quot;20&quot; cycles=&quot;700&quot; repeats=&quot;1&quot; temperature=&quot;5&quot;/&gt;
+		&lt;AddOrRemoveMatchCsts name=&quot;cstrem&quot; cst_instruction=&quot;remove&quot; keep_covalent=&quot;1&quot;/&gt; remove constraints
+		&lt;HighResDocker name=&quot;high_res_docker&quot; cycles=&quot;6&quot; repack_every_Nth=&quot;3&quot; scorefxn=&quot;ligand_soft_rep&quot; movemap_builder=&quot;docking&quot;/&gt;
+		&lt;FinalMinimizer name=&quot;final&quot; scorefxn=&quot;hard_rep&quot; movemap_builder=&quot;final&quot;/&gt;
+		&lt;AddOrRemoveMatchCsts name=&quot;cstfinadd&quot; cst_instruction=&quot;add_pregenerated&quot;/&gt;
+		&lt;InterfaceScoreCalculator name=&quot;add_scores&quot; chains=&quot;X,F&quot; scorefxn=&quot;hard_rep&quot;/&gt;
+		
+	compound movers
+		&lt;ParsedProtocol name=&quot;low_res_dock&quot;&gt;
+			&lt;Add mover_name=&quot;cstadd&quot;/&gt;
+			&lt;Add mover_name=&quot;transform_F&quot;/&gt;
+			&lt;Add mover_name=&quot;transform_X&quot;/&gt;
+			&lt;Add mover_name=&quot;cstrem&quot;/&gt;
+		&lt;/ParsedProtocol&gt;
+		&lt;ParsedProtocol name=&quot;high_res_dock&quot;&gt;
+			&lt;Add mover_name=&quot;high_res_docker&quot;/&gt;
+			&lt;Add mover_name=&quot;final&quot;/&gt;
+			&lt;Add mover_name=&quot;cstfinadd&quot;/&gt;
+		&lt;/ParsedProtocol&gt;
+	&lt;/MOVERS&gt;
+	&lt;PROTOCOLS&gt;
+		&lt;Add mover_name=&quot;low_res_dock&quot;/&gt;
+		&lt;Add mover_name=&quot;high_res_dock&quot;/&gt;
+		&lt;Add mover_name=&quot;add_scores&quot;/&gt;		
+	&lt;/PROTOCOLS&gt;
+&lt;/ROSETTASCRIPTS&gt;</code></pre>
+					</header>
+					</div>
+			</div>
+
+		<!-- Scripts -->
+			<script src="../assets/js/jquery.min.js"></script>
+			<script src="../assets/js/jquery.scrollex.min.js"></script>
+			<script src="../assets/js/jquery.scrolly.min.js"></script>
+			<script src="../assets/js/browser.min.js"></script>
+			<script src="../assets/js/breakpoints.min.js"></script>
+			<script src="../assets/js/util.js"></script>
+			<script src="../assets/js/main.js"></script>
+
+
+	</body>
+</html>
